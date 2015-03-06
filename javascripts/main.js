@@ -1,5 +1,4 @@
-var dataVis = angular.module('dataVis', ['ngWebSocket']);
-var chart;
+var dataVis = angular.module('dataVis', ['ngWebSocket', 'highcharts-ng']);
 
 dataVis.factory('IncomingData', function($websocket) {
   var ws = $websocket('ws://localhost:9090');
@@ -33,21 +32,15 @@ dataVis.factory('IncomingData', function($websocket) {
 
 dataVis.controller('ListController', function($scope, IncomingData) {
   $scope.data = IncomingData.collection;
-
-  $scope.$watchCollection('data', function(newData) {
-    if (chart) {
-      // Highcharts has a nasty habit of mutating arrays given to it, so we'll give it a copy
-      newData = newData.slice(Math.max(0, newData.length - 15));
-      chart.series[0].setData(newData);
-    }
-  });
 });
 
-$(function() {
-  chart = new Highcharts.Chart({
-    chart: {
-      type: 'column',
-      renderTo: 'chart'
+dataVis.controller('ChartController', function($scope, IncomingData) {
+  $scope.chartConfig = {
+    options: {
+      chart: {
+        type: 'column',
+        renderTo: 'chart'
+      },
     },
     title: {
       text: 'Flux Capacitor Oscillations per Second'
@@ -63,10 +56,13 @@ $(function() {
       }
     },
     series: [{ data: [] }]
-  });
+  };
 
-  $('#chartType').on('change', function() {
-    var type = $('#chartType').val();
-    chart.series[0].update({ type: type });
+  $scope.data = IncomingData.collection;
+
+  $scope.$watchCollection('data', function(newData) {
+    // Highcharts has a nasty habit of mutating arrays given to it, so we'll give it a copy
+    newData = newData.slice(Math.max(0, newData.length - 15));
+    $scope.chartConfig.series[0].data = newData;
   });
 });
