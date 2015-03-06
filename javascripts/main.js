@@ -37,7 +37,7 @@ dataVis.controller('ListController', function($scope, IncomingData) {
   $scope.$watchCollection('data', function(newData) {
     if (chart) {
       // Highcharts has a nasty habit of mutating arrays given to it, so we'll give it a copy
-      newData = newData.slice();
+      newData = newData.slice(Math.max(0, newData.length - 15));
       chart.series[0].setData(newData);
     }
   });
